@@ -45,8 +45,28 @@ class GenerateSuitabilityScoreCommand extends Command
 
         $this->line('Test');
 
-        while (!feof($addressFileHandle)) {
-            $this->line(fgets($addressFileHandle));
+        while (!feof($driverNamesFileHandle)) {
+            $driverName = fgets($driverNamesFileHandle);
+
+            while (!feof($addressFileHandle)) {
+                $address = fgets($addressFileHandle);
+
+                $suitabilityScore = $service->getSuitabilityScore($address, $driverName);
+
+                $scores = cache()->get($driverName);
+
+                if (!$scores) {
+                    $scores = [
+                        $address => $suitabilityScore
+                    ];
+                } else {
+                    $scores[$address] = $suitabilityScore;
+                }
+
+                cache()->put($driverName, $scores);
+            }
+
+            $this->line($driverName);
         }
 
         dd(fgets($addressFileHandle), $driverNamesFileHandle);

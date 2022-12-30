@@ -70,7 +70,7 @@ class SuitabilityScoreService
     {
         $arrayName = str_split($string);
 
-        $consonants = array_filter($arrayName, fn ($letter) => !in_array(strtolower($letter), self::VOWELS));
+        $consonants = array_filter($arrayName, fn ($letter) => $letter !== ' ' && !in_array(strtolower($letter), self::VOWELS));
 
         return count($consonants);
     }
