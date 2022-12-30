@@ -2,6 +2,7 @@
 
 namespace App\Commands;
 
+use App\Services\SuitabilityScoreService;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 use function Termwind\{render};
@@ -27,7 +28,7 @@ class GenerateSuitabilityScoreCommand extends Command
      *
      * @return mixed
      */
-    public function handle()
+    public function handle(SuitabilityScoreService $service)
     {
         $pathToAddresses = $this->option('pathToAddressesFile');
 
