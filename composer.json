@@ -19,6 +19,7 @@
         "php": "^8.0",
         "intonate/tinker-zero": "^1.2",
         "laravel-zero/framework": "^9.2",
+        "mmaher/address-string-parser": "^1.1",
         "nunomaduro/termwind": "^1.14"
     },
     "require-dev": {

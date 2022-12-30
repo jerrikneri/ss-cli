@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7e2faaeb39670359c8d4865141c6b22a",
+    "content-hash": "2b85c1b52bbe5ad33b566596d645881c",
     "packages": [
         {
             "name": "brick/math",
@@ -1645,6 +1645,46 @@
                 }
             ],
             "time": "2022-04-17T13:12:02+00:00"
+        },
+        {
+            "name": "mmaher/address-string-parser",
+            "version": "v1.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/MMaher25/address-string-parser.git",
+                "reference": "2c9e7053be486111130ecb9d7b26605feb1df2ed"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/MMaher25/address-string-parser/zipball/2c9e7053be486111130ecb9d7b26605feb1df2ed",
+                "reference": "2c9e7053be486111130ecb9d7b26605feb1df2ed",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "AddressStringParser\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mark Maher",
+                    "email": "Mark.J.Maher25@gmail.com"
+                }
+            ],
+            "description": "A parser for street address strings",
+            "support": {
+                "issues": "https://github.com/MMaher25/address-string-parser/issues",
+                "source": "https://github.com/MMaher25/address-string-parser/tree/v1.1.0"
+            },
+            "time": "2021-02-22T19:13:54+00:00"
         },
         {
             "name": "nesbot/carbon",

@@ -45,12 +45,27 @@ class GenerateSuitabilityScoreCommand extends Command
 
         while (!feof($driverNamesFileHandle)) {
             $driverName = fgets($driverNamesFileHandle);
-            $this->line($driverName);
+
+            $driverName = trim($driverName);
+
+            if (!$driverName) {
+                continue;
+            }
+
+            $this->line('Driver: ' . $driverName);
 
             rewind($addressFileHandle);
-            
+
             while (!feof($addressFileHandle)) {
                 $address = fgets($addressFileHandle);
+
+                $address = trim($address);
+
+                if (!$address) {
+                    continue;
+                }
+
+//                $this->line('Address: ' . $address);
 
                 $suitabilityScore = $service->getSuitabilityScore($address, $driverName);
                 $this->line($driverName);
@@ -70,7 +85,7 @@ class GenerateSuitabilityScoreCommand extends Command
             $this->line($driverName);
         }
 
-        dd(cache()->has('John Smith'));
+        dd(cache()->has('John Smith'), dd(cache()->has('John Smith\n')), 'hey');
     }
 
     /**

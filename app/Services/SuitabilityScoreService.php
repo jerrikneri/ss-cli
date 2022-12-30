@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use AddressStringParser\Parser;
+use Illuminate\Support\Arr;
+
 class SuitabilityScoreService
 {
     public const VOWELS = ['a', 'e', 'i', 'o', 'u'];
@@ -42,9 +45,11 @@ class SuitabilityScoreService
 
     protected function getStreetName(string $address): string
     {
-        $addressParts = explode(' ', $address);
+        $addressParser = new Parser();
 
-        return $addressParts[1] ?? '';
+        $parsedAddress = $addressParser->parseAddress($address);
+
+        return Arr::get($parsedAddress, 'streetName', '');
     }
 
     protected function lengthIsOdd(string $string): bool
