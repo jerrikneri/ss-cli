@@ -43,23 +43,24 @@ class GenerateSuitabilityScoreCommand extends Command
 
         $driverNamesFileHandle = fopen($pathToDriverNames, 'r');
 
-        $this->line('Test');
-
         while (!feof($driverNamesFileHandle)) {
             $driverName = fgets($driverNamesFileHandle);
+            $this->line($driverName);
 
+            rewind($addressFileHandle);
+            
             while (!feof($addressFileHandle)) {
                 $address = fgets($addressFileHandle);
 
                 $suitabilityScore = $service->getSuitabilityScore($address, $driverName);
+                $this->line($driverName);
+                $this->line($address);
+                $this->line($suitabilityScore);
 
-                $scores = cache()->get($driverName);
-
-                if (!$scores) {
-                    $scores = [
-                        $address => $suitabilityScore
-                    ];
+                if (!cache()->has($driverName)) {
+                    $scores = [$address => $suitabilityScore];
                 } else {
+                    $scores = cache()->get($driverName);
                     $scores[$address] = $suitabilityScore;
                 }
 
@@ -69,16 +70,7 @@ class GenerateSuitabilityScoreCommand extends Command
             $this->line($driverName);
         }
 
-        dd(fgets($addressFileHandle), $driverNamesFileHandle);
-
-        render(<<<'HTML'
-            <div class="py-1 ml-2">
-                <div class="px-1 bg-blue-300 text-black">Laravel Zero</div>
-                <em class="ml-1">
-                  Simplicity is the ultimate sophistication.
-                </em>
-            </div>
-        HTML);
+        dd(cache()->has('John Smith'));
     }
 
     /**
