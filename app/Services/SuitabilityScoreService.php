@@ -7,10 +7,12 @@ use Illuminate\Support\Arr;
 
 class SuitabilityScoreService
 {
-    public const DRIVER_CACHE_KEY = 'drivers';
-    public const ADDRESS_CACHE_KEY = 'addresses';
+    public const PARSER_STREET_NAME_KEY = 'streetName';
 
     public const VOWELS = ['a', 'e', 'i', 'o', 'u'];
+
+    public function __construct(private Parser $parser)
+    {}
 
     public function getSuitabilityScore(string $address, string $driverName): float
     {
@@ -18,19 +20,22 @@ class SuitabilityScoreService
 
         $streetName = $this->getStreetName($address);
 
-        // If the length of the shipment's destination street name is even, the base suitability score (SS) is the number of vowels in the driver's name multiplied by 1.5
+        // If the length of the shipment's destination street name is even,
+        // the base suitability score (SS) is the number of vowels in the driver's name multiplied by 1.5
         if ($this->lengthIsEven($streetName)) {
             $vowels = $this->getVowels($driverName);
             $suitabilityScore = $vowels * 1.5;
         }
 
-        // If the length of the shipment's destination street name is odd, the base SS is the number of consonants in the driver's name multiplied by 1.
+        // If the length of the shipment's destination street name is odd,
+        // the base SS is the number of consonants in the driver's name multiplied by 1.
         if ($this->lengthIsOdd($streetName)) {
             $consonants = $this->getConsonants($driverName);
             $suitabilityScore = $consonants * 1.0;
         }
 
-        // If the length of the shipment's destination street name shares any common factors (besides 1) with the length of the driver's name, the ss is increased by 50% above the base SS.
+        // If the length of the shipment's destination street name shares any common factors (besides 1)
+        // with the length of the driver's name, the ss is increased by 50% above the base SS.
         $streetMultiplicationFactors = $this->getFactors($streetName);
         $driverNameMultiplicationFactors = $this->getFactors($driverName);
 
@@ -48,13 +53,10 @@ class SuitabilityScoreService
 
     protected function getStreetName(string $address): string
     {
-        $addressParser = new Parser();
+        $parsedAddress = $this->parser->parseAddress($address);
 
-        $parsedAddress = $addressParser->parseAddress($address);
-
-        return Arr::get($parsedAddress, 'streetName', '');
+        return Arr::get($parsedAddress, self::PARSER_STREET_NAME_KEY, '');
     }
-
     protected function lengthIsOdd(string $string): bool
     {
         return strlen($string) % 2 === 1;
@@ -69,6 +71,7 @@ class SuitabilityScoreService
     {
         $arrayName = str_split($string);
 
+        // handle roman numerals?
         $vowels = array_filter($arrayName, fn ($letter) => in_array(strtolower($letter), self::VOWELS));
 
         return count($vowels);
@@ -78,7 +81,10 @@ class SuitabilityScoreService
     {
         $arrayName = str_split($string);
 
-        $consonants = array_filter($arrayName, fn ($letter) => $letter !== ' ' && !in_array(strtolower($letter), self::VOWELS));
+        // improve with regex
+        $vowelsAndSpecialCharacters = array_merge(self::VOWELS, [' ', '.', '-']);
+
+        $consonants = array_filter($arrayName, fn ($letter) => !in_array(strtolower($letter), $vowelsAndSpecialCharacters));
 
         return count($consonants);
     }
@@ -102,12 +108,31 @@ class SuitabilityScoreService
 
     public function maximizeScores(array $availableDrivers, array $availableAddresses): array
     {
-        foreach ($availableDrivers as $availableDriver) {
-            $scores = cache()->get($availableDriver);
-            dd($scores);
+        $maximizedScores = [];
+
+        foreach ($availableAddresses as $address) {
+            $scoresByAddress = cache()->get($address);
+
+            arsort($scoresByAddress);
+
+            foreach ($scoresByAddress as $driverName => $score) {
+                if (!in_array($driverName, $availableDrivers)) {
+                    continue;
+                }
+
+                $maximizedScores[] = [
+                    'driver' => $driverName,
+                    'suitabilityScore' => $score,
+                    'destination' => $address
+                ];
+
+                array_splice($availableDrivers, array_search($driverName, $availableDrivers), 1);
+
+                break;
+            }
         }
 
-        return [];
+        return $maximizedScores;
     }
 
 }
