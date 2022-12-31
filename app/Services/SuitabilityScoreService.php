@@ -7,6 +7,9 @@ use Illuminate\Support\Arr;
 
 class SuitabilityScoreService
 {
+    public const DRIVER_CACHE_KEY = 'drivers';
+    public const ADDRESS_CACHE_KEY = 'addresses';
+
     public const VOWELS = ['a', 'e', 'i', 'o', 'u'];
 
     public function getSuitabilityScore(string $address, string $driverName): float
@@ -95,6 +98,16 @@ class SuitabilityScoreService
         $factors[] = $length;
 
         return $factors;
+    }
+
+    public function maximizeScores(array $availableDrivers, array $availableAddresses): array
+    {
+        foreach ($availableDrivers as $availableDriver) {
+            $scores = cache()->get($availableDriver);
+            dd($scores);
+        }
+
+        return [];
     }
 
 }

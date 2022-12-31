@@ -3,44 +3,38 @@
 namespace App\Commands;
 
 use App\Services\SuitabilityScoreService;
+use Faker\Factory;
 use Illuminate\Console\Scheduling\Schedule;
 use LaravelZero\Framework\Commands\Command;
 use function Termwind\{render};
 
 class GenerateSuitabilityScoreCommand extends Command
 {
-    /**
-     * The signature of the command.
-     *
-     * @var string
-     */
-    protected $signature = 'generate:suitabilityScore {--pathToAddressesFile=} {--pathToDriverNamesFile=}';
+    private const TEST_ADDRESS_FILE_PATH = './tests/files/addressTestFile.txt';
+    private const TEST_DRIVER_NAME_FILE_PATH = './tests/files/driverNamesTestFile.txt';
 
-    /**
-     * The description of the command.
-     *
-     * @var string
-     */
+    protected $signature = 'generate:suitabilityScore {--pathToAddressesFile=} {--pathToDriverNamesFile=}';
     protected $description = 'Generate suitability score given a list of addresses and drivers.';
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
     public function handle(SuitabilityScoreService $service)
     {
-        $pathToAddresses = $this->option('pathToAddressesFile');
+        $drivers = [];
+        $addresses = [];
 
+        $pathToAddresses = $this->option('pathToAddressesFile');
         $pathToDriverNames = $this->option('pathToDriverNamesFile');
 
         if (!file_exists($pathToAddresses) || !file_exists($pathToDriverNames)) {
             $this->line('Invalid path to file(s) provided.');
-            return;
+            $this->line('Generating test files...');
+
+            $this->generateTestFiles();
+
+            $pathToAddresses = self::TEST_ADDRESS_FILE_PATH;
+            $pathToDriverNames = self::TEST_DRIVER_NAME_FILE_PATH;
         }
 
         $addressFileHandle = fopen($pathToAddresses, 'r');
-
         $driverNamesFileHandle = fopen($pathToDriverNames, 'r');
 
         while (!feof($driverNamesFileHandle)) {
@@ -52,7 +46,7 @@ class GenerateSuitabilityScoreCommand extends Command
                 continue;
             }
 
-            $this->line('Driver: ' . $driverName);
+            $drivers[] = $driverName;
 
             rewind($addressFileHandle);
 
@@ -65,12 +59,9 @@ class GenerateSuitabilityScoreCommand extends Command
                     continue;
                 }
 
-//                $this->line('Address: ' . $address);
+                $addresses[] = $address;
 
                 $suitabilityScore = $service->getSuitabilityScore($address, $driverName);
-                $this->line($driverName);
-                $this->line($address);
-                $this->line($suitabilityScore);
 
                 if (!cache()->has($driverName)) {
                     $scores = [$address => $suitabilityScore];
@@ -81,11 +72,29 @@ class GenerateSuitabilityScoreCommand extends Command
 
                 cache()->put($driverName, $scores);
             }
-
-            $this->line($driverName);
         }
 
-        dd(cache()->has('John Smith'), dd(cache()->has('John Smith\n')), 'hey');
+        fclose($addressFileHandle);
+        fclose($driverNamesFileHandle);
+
+      $assignments = $service->maximizeScores($drivers, $addresses);
+
+
+        render(<<<'HTML'
+            <div class="py-1 ml-2">
+                <div class="px-1 bg-blue-300 text-black">Assignments</div>
+            </div>
+        HTML);
+
+        foreach ($assignments as $assignment) {
+            render(<<<'HTML'
+            <div class="py-1 ml-2">
+                 <ul>
+                    <li>$assignment</li>
+                </ul>
+            </div>
+        HTML);
+        }
     }
 
     /**
@@ -97,5 +106,27 @@ class GenerateSuitabilityScoreCommand extends Command
     public function schedule(Schedule $schedule)
     {
         // $schedule->command(static::class)->everyMinute();
+    }
+
+    private function generateTestFiles(): void
+    {
+        $driverTestFileHandle = fopen(self::TEST_DRIVER_NAME_FILE_PATH, 'w');
+        $faker = Factory::create();
+
+        for ($i = 0; $i < 100; $i++) {
+            fwrite($driverTestFileHandle, $faker->name() . "\n");
+        }
+
+        fclose($driverTestFileHandle);
+
+        $addressTestFileHandle = fopen(self::TEST_ADDRESS_FILE_PATH, 'w');
+
+        for ($i = 0; $i < 100; $i++) {
+            $state = $faker->randomElement(['CA', 'AZ', 'CO', 'NV', 'UT']);
+            $address = "$faker->buildingNumber $faker->streetName $faker->streetSuffix, $faker->city, $state $faker->postcode";
+            fwrite($addressTestFileHandle, $address . "\n");
+        }
+
+        fclose($addressTestFileHandle);
     }
 }
