@@ -43,38 +43,4 @@ class SuitabilityScoreServiceTest extends TestCase
 
         $this->assertEquals(9.0, $score);
     }
-
-    public function testMaximizeScores(): void
-    {
-        $drivers = [
-            'Yoda',
-            'Grogu',
-            'Mando'
-        ];
-
-        $destinations = [
-            '1234 Tatooine Ave, Tatooine, CA 12345',
-            '1234 Kashyyyk Ave, Kashyyyk, CA 12345',
-            '1234 Coruscant Ave, Coruscant, CA 12345',
-        ];
-
-        foreach ($drivers as $driver) {
-            foreach ($destinations as $destination) {
-                $suitabilityScore = $this->service->getSuitabilityScore($destination, $driver);
-
-                if (!cache()->has($destination)) {
-                    $driversAndScores = [$driver => $suitabilityScore];
-                } else {
-                    $driversAndScores = cache()->get($destination);
-                    $driversAndScores[$driver] = $suitabilityScore;
-                }
-
-                cache()->put($destination, $driversAndScores, now()->addMinute());
-            }
-        }
-
-        $assignments = $this->service->maximizeScores($drivers, $destinations);
-
-        $this->assertEquals([], $assignments);
-    }
 }
