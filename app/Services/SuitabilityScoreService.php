@@ -7,6 +7,10 @@ use Illuminate\Support\Arr;
 
 class SuitabilityScoreService
 {
+    public const DESTINATION_KEY = 'destination';
+    public const DRIVER_KEY = 'driver';
+    public const SCORE_KEY = 'suitabilityScore';
+
     public const PARSER_STREET_NAME_KEY = 'streetName';
 
     public const VOWELS = ['a', 'e', 'i', 'o', 'u'];
@@ -50,13 +54,13 @@ class SuitabilityScoreService
         return $suitabilityScore;
     }
 
-
     protected function getStreetName(string $address): string
     {
         $parsedAddress = $this->parser->parseAddress($address);
 
         return Arr::get($parsedAddress, self::PARSER_STREET_NAME_KEY, '');
     }
+
     protected function lengthIsOdd(string $string): bool
     {
         return strlen($string) % 2 === 1;
@@ -121,9 +125,9 @@ class SuitabilityScoreService
                 }
 
                 $maximizedScores[] = [
-                    'driver' => $driverName,
-                    'suitabilityScore' => $score,
-                    'destination' => $address
+                    self::DRIVER_KEY => $driverName,
+                    self::SCORE_KEY => $score,
+                    self::DESTINATION_KEY => $address
                 ];
 
                 array_splice($availableDrivers, array_search($driverName, $availableDrivers), 1);
@@ -134,5 +138,4 @@ class SuitabilityScoreService
 
         return $maximizedScores;
     }
-
 }

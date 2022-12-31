@@ -42,7 +42,7 @@ class GenerateSuitabilityScoreCommand extends Command
         $this->line('Generating suitability scores...');
 
         while (!feof($driverNamesFileHandle)) {
-            $driverName = trim(fgets($driverNamesFileHandle));
+            $driverName = fgets($driverNamesFileHandle);
 
             $driverName = trim($driverName);
 
@@ -93,17 +93,20 @@ class GenerateSuitabilityScoreCommand extends Command
 
         $assignments = $service->maximizeScores($drivers, array_unique($addresses));
 
-        $this->writeToFile($assignments);
+        $this->writeOutputToFile($assignments);
 
         $this->renderAssignments($assignments);
     }
 
-    private function writeToFile(array $assignments): void
+    private function writeOutputToFile(array $assignments): void
     {
         $outputFileHandle = fopen(self::OUTPUT_FILE_PATH, 'w');
 
+        /** @var array $assignment */
         foreach ($assignments as $assignment) {
-            $assignmentString = "Driver: {$assignment['driver']}, Destination: {$assignment['destination']}, Score: {$assignment['suitabilityScore']}\n";
+            $assignmentString = "Driver: {$assignment[SuitabilityScoreService::DRIVER_KEY]},
+                Destination: {$assignment[SuitabilityScoreService::DESTINATION_KEY]},
+                Score: {$assignment[SuitabilityScoreService::SCORE_KEY]}\n";
             fwrite($outputFileHandle, $assignmentString);
         }
 
@@ -118,6 +121,7 @@ class GenerateSuitabilityScoreCommand extends Command
             </div>
         HTML);
 
+        /** @var array $assignment */
         foreach ($assignments as $assignment) {
             $html = <<<'HTML'
                 <div class="py-1 ml-2">
@@ -140,11 +144,11 @@ class GenerateSuitabilityScoreCommand extends Command
                 </div>
             HTML;
 
-            $html = str_replace('$driver', $assignment['driver'], $html);
+            $html = str_replace('$driver', $assignment[SuitabilityScoreService::DRIVER_KEY], $html);
 
-            $html = str_replace('$destination', $assignment['destination'], $html);
+            $html = str_replace('$destination', $assignment[SuitabilityScoreService::DESTINATION_KEY], $html);
 
-            $html = str_replace('$score', $assignment['suitabilityScore'], $html);
+            $html = str_replace('$score', $assignment[SuitabilityScoreService::SCORE_KEY], $html);
 
             render($html);
         }
@@ -170,8 +174,9 @@ class GenerateSuitabilityScoreCommand extends Command
 
         $this->line('Generating test files...');
 
-        $driverTestFileHandle = fopen(self::TEST_DRIVER_NAME_FILE_PATH, 'w');
         $faker = Factory::create();
+
+        $driverTestFileHandle = fopen(self::TEST_DRIVER_NAME_FILE_PATH, 'w');
 
         for ($i = 0; $i < self::TEST_FILE_ITERATIONS; $i++) {
             fwrite($driverTestFileHandle, $faker->name() . "\n");
