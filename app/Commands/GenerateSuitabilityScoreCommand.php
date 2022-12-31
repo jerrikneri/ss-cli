@@ -104,9 +104,7 @@ class GenerateSuitabilityScoreCommand extends Command
 
         /** @var array $assignment */
         foreach ($assignments as $assignment) {
-            $assignmentString = "Driver: {$assignment[SuitabilityScoreService::DRIVER_KEY]},
-                Destination: {$assignment[SuitabilityScoreService::DESTINATION_KEY]},
-                Score: {$assignment[SuitabilityScoreService::SCORE_KEY]}\n";
+            $assignmentString = "Driver: {$assignment[SuitabilityScoreService::DRIVER_KEY]}, Destination: {$assignment[SuitabilityScoreService::DESTINATION_KEY]}, Score: {$assignment[SuitabilityScoreService::SCORE_KEY]}\n";
             fwrite($outputFileHandle, $assignmentString);
         }
 
