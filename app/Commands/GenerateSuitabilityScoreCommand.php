@@ -10,6 +10,8 @@ use function Termwind\{render};
 
 class GenerateSuitabilityScoreCommand extends Command
 {
+    private const OUTPUT_FILE_PATH = './output/assignments.txt';
+
     private const TEST_ADDRESS_FILE_PATH = './tests/files/addressTestFile.txt';
     private const TEST_DRIVER_NAME_FILE_PATH = './tests/files/driverNamesTestFile.txt';
     private const TEST_FILE_ITERATIONS = 100;
@@ -91,7 +93,21 @@ class GenerateSuitabilityScoreCommand extends Command
 
         $assignments = $service->maximizeScores($drivers, array_unique($addresses));
 
+        $this->writeToFile($assignments);
+
         $this->renderAssignments($assignments);
+    }
+
+    private function writeToFile(array $assignments): void
+    {
+        $outputFileHandle = fopen(self::OUTPUT_FILE_PATH, 'w');
+
+        foreach ($assignments as $assignment) {
+            $assignmentString = "Driver: {$assignment['driver']}, Destination: {$assignment['destination']}, Score: {$assignment['suitabilityScore']}\n";
+            fwrite($outputFileHandle, $assignmentString);
+        }
+
+        fclose($outputFileHandle);
     }
 
     private function renderAssignments(array $assignments): void
